@@ -60,8 +60,8 @@ module.exports = function registerAdminRoutes(app, User) {
     if (!username || !password || !role) {
       return res.status(400).json({ message: 'username, password, role required' });
     }
-    if (!['ADMIN', 'MANAGER'].includes(role)) {
-      return res.status(400).json({ message: 'role must be ADMIN or MANAGER' });
+    if (!['ADMIN', 'MANAGER', 'INVENTORY'].includes(role)) {
+      return res.status(400).json({ message: 'role must be ADMIN, MANAGER or INVENTORY' });
     }
     try {
       const hash = await bcrypt.hash(password, 10);

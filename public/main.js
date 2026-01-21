@@ -15,6 +15,48 @@ function setAuth(token, user) {
     logoutBtn.style.display = 'inline-flex';
     mainContent.style.display = 'block';
     authSection.style.display = 'none'; // Hide login form when logged in
+
+    // Configure visible tabs/sections based on role
+    const cashbookTabBtn = document.querySelector('.tab[data-tab="cashbookTab"]');
+    const inventoryBuyTabBtn = document.querySelector('.tab[data-tab="inventoryBuyTab"]');
+    const inventorySellTabBtn = document.querySelector('.tab[data-tab="inventorySellTab"]');
+    const cashbookSection = document.getElementById('cashbookTab');
+    const inventoryBuySection = document.getElementById('inventoryBuyTab');
+    const inventorySellSection = document.getElementById('inventorySellTab');
+
+    // Reset all tabs/sections to visible
+    [cashbookTabBtn, inventoryBuyTabBtn, inventorySellTabBtn].forEach((btn) => {
+      if (btn) btn.style.display = '';
+    });
+    [cashbookSection, inventoryBuySection, inventorySellSection].forEach((sec) => {
+      if (sec) sec.style.display = '';
+    });
+
+    // Clear active states
+    document.querySelectorAll('.tab').forEach((b) => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+
+    if (user.role === 'ADMIN') {
+      // Admin sees everything, default to Cashbook
+      if (cashbookTabBtn && cashbookSection) {
+        cashbookTabBtn.classList.add('active');
+        cashbookSection.classList.add('active');
+      }
+    } else if (user.role === 'MANAGER' || user.role === 'INVENTORY') {
+      // Manager and inventory-only users see only inventory tabs
+      if (cashbookTabBtn) cashbookTabBtn.style.display = 'none';
+      if (cashbookSection) cashbookSection.style.display = 'none';
+
+      // Default to Inventory Buying tab
+      if (inventoryBuyTabBtn && inventoryBuySection) {
+        inventoryBuyTabBtn.classList.add('active');
+        inventoryBuySection.classList.add('active');
+      }
+      // Ensure inventory selling tab content is available via its tab
+      if (inventorySellTabBtn && inventorySellSection) {
+        // leave visible; clicking handled by existing tab logic
+      }
+    }
   } else {
     roleSpan.textContent = 'Not logged in';
     logoutBtn.style.display = 'none';
@@ -100,29 +142,6 @@ document.querySelectorAll('.tab').forEach((btn) => {
     btn.classList.add('active');
     document.getElementById(btn.dataset.tab).classList.add('active');
   });
-});
-
-// Auto-sum income amounts when inputs change
-function updateTotalAmount() {
-  const inputs = document.querySelectorAll('.income-amount-input');
-  let total = 0;
-  inputs.forEach((input) => {
-    const checkbox = document.querySelector(`input[data-income-type="${input.dataset.incomeType}"]`);
-    if (checkbox && checkbox.checked) {
-      total += Number(input.value || 0);
-    }
-  });
-  document.getElementById('cbAmount').value = total.toFixed(2);
-}
-
-// Add event listeners to income amount inputs
-document.querySelectorAll('.income-amount-input').forEach((input) => {
-  input.addEventListener('input', updateTotalAmount);
-});
-
-// Update checkboxes to trigger total recalculation
-document.querySelectorAll('input[name="cbIncomeType"]').forEach((checkbox) => {
-  checkbox.addEventListener('change', updateTotalAmount);
 });
 
 // Load and display real-time balances
@@ -267,6 +286,19 @@ document.getElementById('cbDate').addEventListener('change', async () => {
   loadRealTimeBalances(); // Also refresh balances
 });
 
+// Toggle wages & allowances collapsible section
+const wagesToggleBtn = document.getElementById('toggleWagesSection');
+const wagesSection = document.getElementById('wagesSection');
+if (wagesToggleBtn && wagesSection) {
+  wagesToggleBtn.addEventListener('click', () => {
+    const isHidden = wagesSection.style.display === 'none' || wagesSection.style.display === '';
+    wagesSection.style.display = isHidden ? 'block' : 'none';
+    wagesToggleBtn.textContent = isHidden
+      ? 'Hide wages & allowances'
+      : 'Show wages & allowances';
+  });
+}
+
 // Cashbook form
 document.getElementById('cashbookForm').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -274,32 +306,13 @@ document.getElementById('cashbookForm').addEventListener('submit', async (e) => 
   msg.textContent = '';
   msg.className = 'message';
 
-  // Get selected income types and their individual amounts
-  const incomeTypeCheckboxes = document.querySelectorAll('input[name="cbIncomeType"]:checked');
-  const incomeTypes = [];
-  const amountsByType = new Map();
-  
-  incomeTypeCheckboxes.forEach((checkbox) => {
-    const type = checkbox.value;
-    const amountInput = document.querySelector(`.income-amount-input[data-income-type="${type}"]`);
-    const amount = Number(amountInput?.value || 0);
-    
-    if (amount > 0) {
-      incomeTypes.push(type);
-      amountsByType.set(type, amount);
-    }
-  });
-  
-  const singleIncomeType = incomeTypes.length === 1 ? incomeTypes[0] : null;
-  const totalAmount = Array.from(amountsByType.values()).reduce((sum, amt) => sum + amt, 0);
-
   const payload = {
     month: document.getElementById('cbMonth').value,
     date: document.getElementById('cbDate').value,
-    incomeType: singleIncomeType,
-    incomeTypes: incomeTypes,
-    amount: totalAmount,
-    amountsByType: Object.fromEntries(amountsByType),
+    incomeType: null,
+    incomeTypes: [],
+    amount: Number(document.getElementById('cbAmount').value || 0),
+    amountsByType: {},
     ref: document.getElementById('cbRef').value || null,
     operationalCosts: document.getElementById('cbOperationalCosts').value || null,
     transactionCharges: Number(document.getElementById('cbTransactionCharges').value || 0),
@@ -414,6 +427,7 @@ document.getElementById('cbTransferBtn').addEventListener('click', async () => {
 // Cashbook filter & print
 document.getElementById('cbFilterBtn').addEventListener('click', () => {
   refreshCashbook();
+  refreshInternalTransfers();
 });
 
 document.getElementById('cbPrintBtn').addEventListener('click', () => {
@@ -446,6 +460,28 @@ document.getElementById('cbPdfBtn').addEventListener('click', async () => {
   }
 });
 
+// Internal transfers collapsible + print
+const internalTransfersToggleBtn = document.getElementById('toggleInternalTransfers');
+const internalTransfersSection = document.getElementById('internalTransfersSection');
+if (internalTransfersToggleBtn && internalTransfersSection) {
+  internalTransfersToggleBtn.addEventListener('click', () => {
+    const isHidden =
+      internalTransfersSection.style.display === 'none' ||
+      internalTransfersSection.style.display === '';
+    internalTransfersSection.style.display = isHidden ? 'block' : 'none';
+    internalTransfersToggleBtn.textContent = isHidden
+      ? 'Hide internal transfers'
+      : 'Show internal transfers';
+  });
+}
+
+const internalTransfersPrintBtn = document.getElementById('internalTransfersPrintBtn');
+if (internalTransfersPrintBtn) {
+  internalTransfersPrintBtn.addEventListener('click', () => {
+    window.print();
+  });
+}
+
 async function refreshCashbook() {
   const month = document.getElementById('cbFilterMonth').value;
   const params = new URLSearchParams();
@@ -453,18 +489,74 @@ async function refreshCashbook() {
   try {
     const rows = await apiFetch(`/api/cashbook?${params.toString()}`);
     renderCashbookTable(rows);
-    if (month) {
-      const summary = await apiFetch(`/api/cashbook/summary?month=${month}`);
-      document.getElementById('cbTotalAmount').textContent =
-        summary.summary?.totalAmount?.toLocaleString() || '0';
-      document.getElementById('cbTotalExpenses').textContent =
-        summary.summary?.totalExpenses?.toLocaleString() || '0';
-      document.getElementById('cbTotalBalance').textContent =
-        (summary.summary?.totalAmount - summary.summary?.totalExpenses || 0).toLocaleString();
-    }
+
+    // Auto-compute footer totals from visible rows
+    let totalAmount = 0;
+    let totalExpenses = 0;
+    rows.forEach((row) => {
+      totalAmount += Number(row.amount || 0);
+      totalExpenses += Number(row.expenses || 0);
+    });
+
+    document.getElementById('cbTotalAmount').textContent =
+      totalAmount.toLocaleString();
+    document.getElementById('cbTotalExpenses').textContent =
+      totalExpenses.toLocaleString();
+    document.getElementById('cbTotalBalance').textContent =
+      (totalAmount - totalExpenses).toLocaleString();
   } catch (err) {
     console.error(err);
   }
+}
+
+// Internal transfers table
+async function refreshInternalTransfers() {
+  const month = document.getElementById('cbFilterMonth').value;
+  const params = new URLSearchParams();
+  if (month) params.append('month', month);
+  try {
+    const rows = await apiFetch(`/api/cashbook?${params.toString()}`);
+    const transfers = rows.filter((row) => row.internalTransfer);
+    renderInternalTransfersTable(transfers);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function renderInternalTransfersTable(rows) {
+  const tbody = document.querySelector('#internalTransfersTable tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  rows.forEach((row) => {
+    const tr = document.createElement('tr');
+
+    function tdText(text) {
+      const td = document.createElement('td');
+      td.textContent = text;
+      return td;
+    }
+
+    const date = row.date ? new Date(row.date).toISOString().slice(0, 10) : '';
+    const label = row.internalTransfer || '';
+    const isFrom = label.startsWith('FROM ');
+    const isTo = label.startsWith('TO ');
+    const from = isFrom ? label.replace('FROM ', '') : '';
+    const to = isTo ? label.replace('TO ', '') : '';
+    const amount = isTo
+      ? Number(row.amount || 0)
+      : isFrom
+      ? Number(row.expenses || 0)
+      : 0;
+
+    tr.appendChild(tdText(date));
+    tr.appendChild(tdText(from));
+    tr.appendChild(tdText(to));
+    tr.appendChild(tdText(amount.toLocaleString()));
+    tr.appendChild(tdText(row.ref || ''));
+
+    tbody.appendChild(tr);
+  });
 }
 
 function renderCashbookTable(rows) {
@@ -501,6 +593,8 @@ function renderCashbookTable(rows) {
     tr.appendChild(tdText(row.wagesCategory || ''));
     tr.appendChild(tdText(row.name || ''));
     tr.appendChild(tdText(row.paymentTier || ''));
+    tr.appendChild(tdText(row.salaryAmount?.toLocaleString() || '0'));
+    tr.appendChild(tdText(row.allowance?.toLocaleString() || '0'));
     tr.appendChild(tdText(row.wildExpenditure ? 'wild expenditure' : ''));
 
     const actionsTd = document.createElement('td');
@@ -775,5 +869,17 @@ function loadInitialData() {
   refreshInvBuy();
   refreshInvSell();
   loadRealTimeBalances(); // Load balances on initial load
+  refreshInternalTransfers();
+
+  // Auto-refresh real-time balances every 15 seconds
+  if (!window.__balancesInterval) {
+    window.__balancesInterval = setInterval(() => {
+      // Only try when logged in and month is selected
+      const monthInput = document.getElementById('cbMonth');
+      if (authToken && monthInput && monthInput.value) {
+        loadRealTimeBalances();
+      }
+    }, 15000);
+  }
 }
 

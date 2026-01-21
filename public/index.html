@@ -89,49 +89,9 @@
                 <label for="cbDate">Date</label>
                 <input id="cbDate" type="date" required />
               </div>
-              <div class="form-control" style="grid-column: 1 / -1;">
-                <label>Income Types - Enter Amount for Each</label>
-                <div class="income-types-inputs" style="display: grid; gap: 0.5rem; margin-top: 0.5rem;">
-                  <div class="income-type-row" style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; align-items: center;">
-                    <label class="checkbox-label" style="min-width: 150px;">
-                      <input type="checkbox" name="cbIncomeType" value="MM-AIRTEL" data-income-type="MM-AIRTEL" />
-                      MM-AIRTEL
-                    </label>
-                    <input type="number" class="income-amount-input" data-income-type="MM-AIRTEL" min="0" step="0.01" placeholder="0.00" style="width: 100%;" />
-                  </div>
-                  <div class="income-type-row" style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; align-items: center;">
-                    <label class="checkbox-label" style="min-width: 150px;">
-                      <input type="checkbox" name="cbIncomeType" value="MM-MTN" data-income-type="MM-MTN" />
-                      MM-MTN
-                    </label>
-                    <input type="number" class="income-amount-input" data-income-type="MM-MTN" min="0" step="0.01" placeholder="0.00" style="width: 100%;" />
-                  </div>
-                  <div class="income-type-row" style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; align-items: center;">
-                    <label class="checkbox-label" style="min-width: 150px;">
-                      <input type="checkbox" name="cbIncomeType" value="CASH" data-income-type="CASH" />
-                      CASH
-                    </label>
-                    <input type="number" class="income-amount-input" data-income-type="CASH" min="0" step="0.01" placeholder="0.00" style="width: 100%;" />
-                  </div>
-                  <div class="income-type-row" style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; align-items: center;">
-                    <label class="checkbox-label" style="min-width: 150px;">
-                      <input type="checkbox" name="cbIncomeType" value="BANK" data-income-type="BANK" />
-                      BANK
-                    </label>
-                    <input type="number" class="income-amount-input" data-income-type="BANK" min="0" step="0.01" placeholder="0.00" style="width: 100%;" />
-                  </div>
-                  <div class="income-type-row" style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; align-items: center;">
-                    <label class="checkbox-label" style="min-width: 150px;">
-                      <input type="checkbox" name="cbIncomeType" value="BUSINESSPROFIT" data-income-type="BUSINESSPROFIT" />
-                      BUSINESS profit
-                    </label>
-                    <input type="number" class="income-amount-input" data-income-type="BUSINESSPROFIT" min="0" step="0.01" placeholder="0.00" style="width: 100%;" />
-                  </div>
-                </div>
-              </div>
               <div class="form-control">
-                <label for="cbAmount">Total Amount (UGX) - Auto Calculated</label>
-                <input id="cbAmount" type="number" min="0" step="0.01" readonly style="background: rgba(15, 23, 42, 0.5);" />
+                <label for="cbAmount">Amount (UGX)</label>
+                <input id="cbAmount" type="number" min="0" step="0.01" />
               </div>
               <div class="form-control" style="grid-column: 1 / -1;">
                 <label>Real-Time Balance by Income Type</label>
@@ -240,38 +200,48 @@
                   <option value="BANK">Bank</option>
                 </select>
               </div>
-              <div class="form-control">
-                <label for="cbWagesCategory">Wages Category</label>
-                <select id="cbWagesCategory">
-                  <option value="NONE">None</option>
-                  <option value="CASUAL">Casual workers</option>
-                  <option value="STAFF">Staff</option>
-                </select>
+              <div class="form-control" style="grid-column: 1 / -1;">
+                <label style="margin-bottom: 0.3rem; font-weight: 600;">Wages & Allowances</label>
+                <button type="button" id="toggleWagesSection" class="btn secondary small">
+                  Show wages & allowances
+                </button>
               </div>
-              <div class="form-control">
-                <label for="cbName">Name</label>
-                <input id="cbName" type="text" />
-              </div>
-              <div class="form-control">
-                <label for="cbPaymentTier">Payment Tier</label>
-                <select id="cbPaymentTier">
-                  <option value="NONE">None</option>
-                  <option value="DAILY">Daily</option>
-                  <option value="WEEKLY">Weekly</option>
-                  <option value="MONTHLY">Monthly</option>
-                </select>
-              </div>
-              <div class="form-control">
-                <label for="cbSalaryAmount">Salary Amount (UGX)</label>
-                <input id="cbSalaryAmount" type="number" min="0" step="0.01" />
-              </div>
-              <div class="form-control">
-                <label for="cbAdvance">Advance (UGX)</label>
-                <input id="cbAdvance" type="number" min="0" step="0.01" />
-              </div>
-              <div class="form-control">
-                <label for="cbAllowance">Allowance / Overtime (UGX)</label>
-                <input id="cbAllowance" type="number" min="0" step="0.01" />
+              <div id="wagesSection" class="collapsible-section" style="grid-column: 1 / -1; display: none;">
+                <div class="form-grid">
+                  <div class="form-control">
+                    <label for="cbWagesCategory">Wages Category</label>
+                    <select id="cbWagesCategory">
+                      <option value="NONE">None</option>
+                      <option value="CASUAL">Casual workers</option>
+                      <option value="STAFF">Staff</option>
+                    </select>
+                  </div>
+                  <div class="form-control">
+                    <label for="cbName">Name</label>
+                    <input id="cbName" type="text" />
+                  </div>
+                  <div class="form-control">
+                    <label for="cbPaymentTier">Payment Tier</label>
+                    <select id="cbPaymentTier">
+                      <option value="NONE">None</option>
+                      <option value="DAILY">Daily</option>
+                      <option value="WEEKLY">Weekly</option>
+                      <option value="MONTHLY">Monthly</option>
+                    </select>
+                  </div>
+                  <div class="form-control">
+                    <label for="cbSalaryAmount">Salary Amount (UGX)</label>
+                    <input id="cbSalaryAmount" type="number" min="0" step="0.01" />
+                  </div>
+                  <div class="form-control">
+                    <label for="cbAdvance">Advance (UGX)</label>
+                    <input id="cbAdvance" type="number" min="0" step="0.01" />
+                  </div>
+                  <div class="form-control">
+                    <label for="cbAllowance">Allowance / Overtime (UGX)</label>
+                    <input id="cbAllowance" type="number" min="0" step="0.01" />
+                  </div>
+                </div>
               </div>
               <div class="form-actions">
                 <button type="submit" class="btn primary">Save Entry</button>
@@ -306,6 +276,8 @@
                     <th>Wages</th>
                     <th>Name</th>
                     <th>Tier</th>
+                    <th>Salary</th>
+                    <th>Allowance / OT</th>
                     <th>Wild Exp.</th>
                     <th>Actions</th>
                   </tr>
@@ -317,10 +289,38 @@
                     <td id="cbTotalAmount">0</td>
                     <td id="cbTotalExpenses">0</td>
                     <td id="cbTotalBalance">0</td>
-                    <td colspan="6"></td>
+                    <td colspan="8"></td>
                   </tr>
                 </tfoot>
               </table>
+            </div>
+          </div>
+
+          <div class="card glass">
+            <div class="card-header">
+              <h2>Internal Transfers</h2>
+              <div class="card-actions">
+                <button type="button" id="toggleInternalTransfers" class="btn secondary small">
+                  Show internal transfers
+                </button>
+                <button id="internalTransfersPrintBtn" class="btn secondary">Print</button>
+              </div>
+            </div>
+            <div id="internalTransfersSection" class="collapsible-section" style="display: none;">
+              <div class="table-wrapper">
+                <table id="internalTransfersTable">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>From</th>
+                      <th>To</th>
+                      <th>Amount (UGX)</th>
+                      <th>Reference</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
             </div>
           </div>
         </section>

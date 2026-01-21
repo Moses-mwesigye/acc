@@ -141,12 +141,12 @@ const inventorySaleSchema = new mongoose.Schema(
 
 const InventorySale = mongoose.model('InventorySale', inventorySaleSchema);
 
-// Simple user model for manager/admin
+// Simple user model for manager/admin/inventory-only
 const userSchema = new mongoose.Schema(
   {
     username: { type: String, unique: true, required: true },
     passwordHash: { type: String, required: true },
-    role: { type: String, enum: ['ADMIN', 'MANAGER'], required: true },
+    role: { type: String, enum: ['ADMIN', 'MANAGER', 'INVENTORY'], required: true },
   },
   { timestamps: true }
 );
@@ -922,7 +922,7 @@ app.get('/api/reports/cashbook/pdf', requireAuth, async (req, res) => {
     doc.moveDown(0.3);
     doc.fontSize(8);
     doc.text(
-      'Date        IncomeType   Amount   Expenses   Method   Name   WildExp',
+      'Date        IncomeType   Amount   Expenses   Method   Name       Salary   Allow   WildExp',
       { continued: false }
     );
     doc.moveDown(0.2);
@@ -933,7 +933,9 @@ app.get('/api/reports/cashbook/pdf', requireAuth, async (req, res) => {
           e.amount || 0
         ).padEnd(8)} ${String(e.expenses || 0).padEnd(9)} ${String(
           e.methodOfPayment || ''
-        ).padEnd(8)} ${String(e.name || '').padEnd(10)} ${
+        ).padEnd(8)} ${String(e.name || '').padEnd(10)} ${String(
+          e.salaryAmount || 0
+        ).padEnd(8)} ${String(e.allowance || 0).padEnd(8)} ${
           e.wildExpenditure ? 'wild expenditure' : ''
         }`
       );
