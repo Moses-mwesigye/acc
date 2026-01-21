@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BWWS Cashbook & Inventory</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-root">
+      <header class="app-header glass">
+        <h1>BWWS Cashbook & Inventory</h1>
+        <div class="login-status">
+          <span id="currentUserRole">Not logged in</span>
+          <button id="logoutBtn" class="btn secondary" style="display: none">Logout</button>
+        </div>
+      </header>
+
+      <section class="auth-section glass">
+        <h2>Manager / Admin Login</h2>
+        <form id="loginForm" class="form-grid" autocomplete="off">
+          <div class="form-control">
+            <label for="loginUsername">Username</label>
+            <input id="loginUsername" type="text" autocomplete="off" required />
+          </div>
+          <div class="form-control">
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" type="password" autocomplete="new-password" required />
+          </div>
+          <button type="submit" class="btn primary full">Login</button>
+          <p id="loginMessage" class="message"></p>
+        </form>
+      </section>
+
+      <main id="mainContent" style="display: none">
+        <nav class="tabs glass">
+          <button class="tab active" data-tab="cashbookTab">Cashbook</button>
+          <button class="tab" data-tab="inventoryBuyTab">Inventory Buying</button>
+          <button class="tab" data-tab="inventorySellTab">Inventory Selling</button>
+        </nav>
+
+        <section id="cashbookTab" class="tab-content active">
+          <div class="card glass">
+            <h2>Quick Deposit</h2>
+            <form id="depositForm" class="form-grid">
+              <div class="form-control">
+                <label for="depositMonth">Month (YYYY-MM)</label>
+                <input id="depositMonth" type="month" required />
+              </div>
+              <div class="form-control">
+                <label for="depositDate">Date</label>
+                <input id="depositDate" type="date" required />
+              </div>
+              <div class="form-control">
+                <label for="depositIncomeType">Income Type</label>
+                <select id="depositIncomeType" required>
+                  <option value="">-- Select --</option>
+                  <option value="MM-AIRTEL">MM-AIRTEL</option>
+                  <option value="MM-MTN">MM-MTN</option>
+                  <option value="CASH">CASH</option>
+                  <option value="BANK">BANK</option>
+                  <option value="BUSINESSPROFIT">BUSINESS profit (recyclables)</option>
+                </select>
+                <small id="depositBalanceDisplay" style="color: #cbd5f5; font-size: 0.75rem; margin-top: 0.25rem; display: block;"></small>
+              </div>
+              <div class="form-control">
+                <label for="depositAmount">Deposit Amount (UGX)</label>
+                <input id="depositAmount" type="number" min="0" step="0.01" required />
+              </div>
+              <div class="form-control">
+                <label for="depositRef">Reference/Description</label>
+                <input id="depositRef" type="text" placeholder="e.g., Cash deposit, Payment received" />
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn primary">Deposit</button>
+              </div>
+              <p id="depositMessage" class="message"></p>
+            </form>
+          </div>
+
+          <div class="card glass">
+            <h2>Cashbook Entry</h2>
+            <form id="cashbookForm" class="form-grid">
+              <div class="form-control">
+                <label for="cbMonth">Month (YYYY-MM)</label>
+                <input id="cbMonth" type="month" required />
+              </div>
+              <div class="form-control">
+                <label for="cbDate">Date</label>
+                <input id="cbDate" type="date" required />
+              </div>
+              <div class="form-control" style="grid-column: 1 / -1;">
+                <label>Income Types - Enter Amount for Each</label>
+                <div class="income-types-inputs" style="display: grid; gap: 0.5rem; margin-top: 0.5rem;">
+                  <div class="income-type-row" style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; align-items: center;">
+                    <label class="checkbox-label" style="min-width: 150px;">
+                      <input type="checkbox" name="cbIncomeType" value="MM-AIRTEL" data-income-type="MM-AIRTEL" />
+                      MM-AIRTEL
+                    </label>
+                    <input type="number" class="income-amount-input" data-income-type="MM-AIRTEL" min="0" step="0.01" placeholder="0.00" style="width: 100%;" />
+                  </div>
+                  <div class="income-type-row" style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; align-items: center;">
+                    <label class="checkbox-label" style="min-width: 150px;">
+                      <input type="checkbox" name="cbIncomeType" value="MM-MTN" data-income-type="MM-MTN" />
+                      MM-MTN
+                    </label>
+                    <input type="number" class="income-amount-input" data-income-type="MM-MTN" min="0" step="0.01" placeholder="0.00" style="width: 100%;" />
+                  </div>
+                  <div class="income-type-row" style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; align-items: center;">
+                    <label class="checkbox-label" style="min-width: 150px;">
+                      <input type="checkbox" name="cbIncomeType" value="CASH" data-income-type="CASH" />
+                      CASH
+                    </label>
+                    <input type="number" class="income-amount-input" data-income-type="CASH" min="0" step="0.01" placeholder="0.00" style="width: 100%;" />
+                  </div>
+                  <div class="income-type-row" style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; align-items: center;">
+                    <label class="checkbox-label" style="min-width: 150px;">
+                      <input type="checkbox" name="cbIncomeType" value="BANK" data-income-type="BANK" />
+                      BANK
+                    </label>
+                    <input type="number" class="income-amount-input" data-income-type="BANK" min="0" step="0.01" placeholder="0.00" style="width: 100%;" />
+                  </div>
+                  <div class="income-type-row" style="display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; align-items: center;">
+                    <label class="checkbox-label" style="min-width: 150px;">
+                      <input type="checkbox" name="cbIncomeType" value="BUSINESSPROFIT" data-income-type="BUSINESSPROFIT" />
+                      BUSINESS profit
+                    </label>
+                    <input type="number" class="income-amount-input" data-income-type="BUSINESSPROFIT" min="0" step="0.01" placeholder="0.00" style="width: 100%;" />
+                  </div>
+                </div>
+              </div>
+              <div class="form-control">
+                <label for="cbAmount">Total Amount (UGX) - Auto Calculated</label>
+                <input id="cbAmount" type="number" min="0" step="0.01" readonly style="background: rgba(15, 23, 42, 0.5);" />
+              </div>
+              <div class="form-control" style="grid-column: 1 / -1;">
+                <label>Real-Time Balance by Income Type</label>
+                <div class="table-wrapper" style="margin-top: 0.5rem;">
+                  <table id="balanceTable" style="font-size: 0.85rem;">
+                    <thead>
+                      <tr>
+                        <th>Income Type</th>
+                        <th>Available Balance (UGX)</th>
+                      </tr>
+                    </thead>
+                    <tbody id="balanceTableBody">
+                      <tr><td colspan="2">Loading...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="form-control">
+                <label for="cbRef">REF</label>
+                <input id="cbRef" type="text" />
+              </div>
+              <div class="form-control">
+                <label for="cbOperationalCosts">Operational Costs</label>
+                <input id="cbOperationalCosts" type="text" />
+              </div>
+              <div class="form-control" style="grid-column: 1 / -1;">
+                <label style="margin-bottom: 0.5rem; font-weight: 600;">Internal Transfer</label>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 0.5rem; align-items: end;">
+                  <div>
+                    <label for="cbTransferFrom" style="font-size: 0.8rem;">From</label>
+                    <select id="cbTransferFrom" style="width: 100%;">
+                      <option value="">-- Select --</option>
+                      <option value="MM-AIRTEL">MM-AIRTEL</option>
+                      <option value="MM-MTN">MM-MTN</option>
+                      <option value="CASH">CASH</option>
+                      <option value="BANK">BANK</option>
+                      <option value="BUSINESSPROFIT">BUSINESS profit</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="cbTransferTo" style="font-size: 0.8rem;">To</label>
+                    <select id="cbTransferTo" style="width: 100%;">
+                      <option value="">-- Select --</option>
+                      <option value="MM-AIRTEL">MM-AIRTEL</option>
+                      <option value="MM-MTN">MM-MTN</option>
+                      <option value="CASH">CASH</option>
+                      <option value="BANK">BANK</option>
+                      <option value="BUSINESSPROFIT">BUSINESS profit</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="cbTransferAmount" style="font-size: 0.8rem;">Amount (UGX)</label>
+                    <input id="cbTransferAmount" type="number" min="0" step="0.01" style="width: 100%;" />
+                  </div>
+                  <button type="button" id="cbTransferBtn" class="btn secondary" style="height: fit-content;">Transfer</button>
+                </div>
+                <p id="transferMessage" class="message" style="margin-top: 0.5rem;"></p>
+              </div>
+              <div class="form-control">
+                <label for="cbTransactionCharges">Transaction Charges (UGX)</label>
+                <input id="cbTransactionCharges" type="number" min="0" step="0.01" />
+              </div>
+              <div class="form-control">
+                <label for="cbRecyclables">Recyclables</label>
+                <input id="cbRecyclables" type="text" />
+              </div>
+              <div class="form-control">
+                <label for="cbOp">OP</label>
+                <input id="cbOp" type="text" />
+              </div>
+              <div class="form-control">
+                <label for="cbSector">Sector</label>
+                <select id="cbSector">
+                  <option value="">-- Select --</option>
+                  <option value="BUYING">Buying recyclables</option>
+                  <option value="CLEANING">Cleaning recyclables</option>
+                  <option value="TRANSPORT">Transport</option>
+                </select>
+              </div>
+              <div class="form-control">
+                <label for="cbExpenses">Expenses (UGX)</label>
+                <input id="cbExpenses" type="number" min="0" step="0.01" />
+              </div>
+              <div class="form-control">
+                <label for="cbExpenseIncomeType">Expense Income Type</label>
+                <select id="cbExpenseIncomeType">
+                  <option value="NONE">-- Select --</option>
+                  <option value="MM-AIRTEL">MM-AIRTEL</option>
+                  <option value="MM-MTN">MM-MTN</option>
+                  <option value="CASH">CASH</option>
+                  <option value="BANK">BANK</option>
+                  <option value="BUSINESSPROFIT">BUSINESS profit (recyclables)</option>
+                </select>
+              </div>
+              <div class="form-control">
+                <label for="cbBalance">Balance (UGX)</label>
+                <input id="cbBalance" type="number" min="0" step="0.01" />
+              </div>
+              <div class="form-control">
+                <label for="cbMethodOfPayment">Method of Payment</label>
+                <select id="cbMethodOfPayment">
+                  <option value="">-- Select --</option>
+                  <option value="CASH">Cash</option>
+                  <option value="MM-AIRTEL">Mobile Money AIRTEL</option>
+                  <option value="MM-MTN">Mobile Money MTN</option>
+                  <option value="BANK">Bank</option>
+                </select>
+              </div>
+              <div class="form-control">
+                <label for="cbWagesCategory">Wages Category</label>
+                <select id="cbWagesCategory">
+                  <option value="NONE">None</option>
+                  <option value="CASUAL">Casual workers</option>
+                  <option value="STAFF">Staff</option>
+                </select>
+              </div>
+              <div class="form-control">
+                <label for="cbName">Name</label>
+                <input id="cbName" type="text" />
+              </div>
+              <div class="form-control">
+                <label for="cbPaymentTier">Payment Tier</label>
+                <select id="cbPaymentTier">
+                  <option value="NONE">None</option>
+                  <option value="DAILY">Daily</option>
+                  <option value="WEEKLY">Weekly</option>
+                  <option value="MONTHLY">Monthly</option>
+                </select>
+              </div>
+              <div class="form-control">
+                <label for="cbSalaryAmount">Salary Amount (UGX)</label>
+                <input id="cbSalaryAmount" type="number" min="0" step="0.01" />
+              </div>
+              <div class="form-control">
+                <label for="cbAdvance">Advance (UGX)</label>
+                <input id="cbAdvance" type="number" min="0" step="0.01" />
+              </div>
+              <div class="form-control">
+                <label for="cbAllowance">Allowance / Overtime (UGX)</label>
+                <input id="cbAllowance" type="number" min="0" step="0.01" />
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn primary">Save Entry</button>
+              </div>
+              <p id="cashbookMessage" class="message"></p>
+            </form>
+          </div>
+
+          <div class="card glass">
+            <div class="card-header">
+              <h2>Cashbook Table</h2>
+              <div class="card-actions">
+                <label>
+                  Filter Month:
+                  <input id="cbFilterMonth" type="month" />
+                </label>
+                <button id="cbFilterBtn" class="btn secondary">Filter</button>
+                <button id="cbPrintBtn" class="btn secondary">Print</button>
+                <button id="cbPdfBtn" class="btn secondary">Download PDF</button>
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table id="cashbookTable">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Income Type</th>
+                    <th>Amount</th>
+                    <th>Expenses</th>
+                    <th>Balance</th>
+                    <th>Method</th>
+                    <th>Wages</th>
+                    <th>Name</th>
+                    <th>Tier</th>
+                    <th>Wild Exp.</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="2">Totals</td>
+                    <td id="cbTotalAmount">0</td>
+                    <td id="cbTotalExpenses">0</td>
+                    <td id="cbTotalBalance">0</td>
+                    <td colspan="6"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="inventoryBuyTab" class="tab-content">
+          <div class="card glass">
+            <h2>Inventory Buying</h2>
+            <form id="invBuyForm" class="form-grid">
+              <div class="form-control">
+                <label for="invBuyMonth">Month (YYYY-MM)</label>
+                <input id="invBuyMonth" type="month" required />
+              </div>
+              <div class="form-control">
+                <label for="invBuyDate">Date of Purchase</label>
+                <input id="invBuyDate" type="date" required />
+              </div>
+              <div class="form-control">
+                <label for="invSupplierName">Supplier Name</label>
+                <input id="invSupplierName" type="text" required />
+              </div>
+              <div class="form-control">
+                <label for="invSupplierPhone">Supplier Phone</label>
+                <input id="invSupplierPhone" type="text" />
+              </div>
+              <div class="form-control">
+                <label for="invSupplierLocation">Supplier Location</label>
+                <input id="invSupplierLocation" type="text" />
+              </div>
+              <div class="form-control">
+                <label for="invItemType">Purchased Item</label>
+                <select id="invItemType" required>
+                  <option value="">-- Select --</option>
+                  <option value="SOFT">Soft</option>
+                  <option value="BOTTLES">Bottles</option>
+                  <option value="HD">HD</option>
+                  <option value="STEEL">Steel</option>
+                  <option value="SACKS">Sacks</option>
+                  <option value="JCNS">Jcns</option>
+                  <option value="PLASTICS">Plastics (Bafu)</option>
+                  <option value="BOX">Box</option>
+                  <option value="CUPS">Cups</option>
+                </select>
+              </div>
+              <div class="form-control">
+                <label for="invQtyKg">Qty (Kgs)</label>
+                <input id="invQtyKg" type="number" min="0" step="0.01" required />
+              </div>
+              <div class="form-control">
+                <label for="invUnitCost">Unit Cost (UGX per Kg)</label>
+                <input id="invUnitCost" type="number" min="0" step="0.01" />
+              </div>
+              <div class="form-control">
+                <label for="invPurchaseTotal">Purchase Price Total (UGX)</label>
+                <input id="invPurchaseTotal" type="number" min="0" step="0.01" required readonly />
+              </div>
+              <div class="form-control">
+                <label for="invBuyMethodOfPayment">Method of Payment</label>
+                <select id="invBuyMethodOfPayment">
+                  <option value="">-- Select --</option>
+                  <option value="CASH">Cash</option>
+                  <option value="MM-AIRTEL">MM-AIRTEL</option>
+                  <option value="MM-MTN">MM-MTN</option>
+                  <option value="BANK">Bank</option>
+                </select>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn primary">Save Purchase</button>
+              </div>
+              <p id="invBuyMessage" class="message"></p>
+            </form>
+          </div>
+
+          <div class="card glass">
+            <div class="card-header">
+              <h2>Inventory Purchases</h2>
+              <div class="card-actions">
+                <label>
+                  Filter Month:
+                  <input id="invBuyFilterMonth" type="month" />
+                </label>
+                <label>
+                  Supplier:
+                  <input id="invBuyFilterSupplier" type="text" />
+                </label>
+                <button id="invBuyFilterBtn" class="btn secondary">Filter</button>
+                <button id="invBuyPrintBtn" class="btn secondary">Print</button>
+                <button id="invBuyPdfBtn" class="btn secondary">Download PDF</button>
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table id="invBuyTable">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Supplier</th>
+                    <th>Item</th>
+                    <th>Qty (Kg)</th>
+                    <th>Qty (Tons)</th>
+                    <th>Purchase Total</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="3">Monthly Totals</td>
+                    <td id="invBuyTotalKg">0</td>
+                    <td id="invBuyTotalTons">0</td>
+                    <td id="invBuyTotalAmount">0</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="inventorySellTab" class="tab-content">
+          <div class="card glass">
+            <h2>Inventory Selling</h2>
+            <form id="invSellForm" class="form-grid">
+              <div class="form-control">
+                <label for="invSellMonth">Month (YYYY-MM)</label>
+                <input id="invSellMonth" type="month" required />
+              </div>
+              <div class="form-control">
+                <label for="invSellDate">Date of Sale</label>
+                <input id="invSellDate" type="date" required />
+              </div>
+              <div class="form-control">
+                <label for="invSellCompany">Offtaker Company</label>
+                <input id="invSellCompany" type="text" required />
+              </div>
+              <div class="form-control">
+                <label for="invSellItemType">Item</label>
+                <select id="invSellItemType" required>
+                  <option value="">-- Select --</option>
+                  <option value="SOFT">Soft</option>
+                  <option value="BOTTLES">Bottles</option>
+                  <option value="HD">HD</option>
+                  <option value="STEEL">Steel</option>
+                  <option value="SACKS">Sacks</option>
+                  <option value="JCNS">Jcns</option>
+                  <option value="PLASTICS">Plastics (Bafu)</option>
+                  <option value="BOX">Box</option>
+                  <option value="CUPS">Cups</option>
+                </select>
+              </div>
+              <div class="form-control">
+                <label for="invSellQtyKg">Qty (Kgs)</label>
+                <input id="invSellQtyKg" type="number" min="0" step="0.01" required />
+              </div>
+              <div class="form-control">
+                <label for="invSellUnitCost">Unit Cost (UGX per Kg)</label>
+                <input id="invSellUnitCost" type="number" min="0" step="0.01" required />
+              </div>
+              <div class="form-control">
+                <label for="invSellTotalAmount">Total Amount (UGX)</label>
+                <input id="invSellTotalAmount" type="number" min="0" step="0.01" required readonly />
+              </div>
+              <div class="form-control">
+                <label for="invSellMethod">Method of Payment</label>
+                <select id="invSellMethod" required>
+                  <option value="">-- Select --</option>
+                  <option value="CASH">Cash</option>
+                  <option value="MM-AIRTEL">MM-AIRTEL</option>
+                  <option value="MM-MTN">MM-MTN</option>
+                  <option value="BANK">Bank</option>
+                </select>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn primary">Save Sale</button>
+              </div>
+              <p id="invSellMessage" class="message"></p>
+            </form>
+          </div>
+
+          <div class="card glass">
+            <div class="card-header">
+              <h2>Inventory Sales</h2>
+              <div class="card-actions">
+                <label>
+                  Filter Month:
+                  <input id="invSellFilterMonth" type="month" />
+                </label>
+                <button id="invSellFilterBtn" class="btn secondary">Filter</button>
+                <button id="invSellPrintBtn" class="btn secondary">Print</button>
+                <button id="invSellPdfBtn" class="btn secondary">Download PDF</button>
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table id="invSellTable">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Company</th>
+                    <th>Item</th>
+                    <th>Qty (Kg)</th>
+                    <th>Qty (Tons)</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="3">Monthly Totals</td>
+                    <td id="invSellTotalKg">0</td>
+                    <td id="invSellTotalTons">0</td>
+                    <td id="invSellTotalAmount">0</td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="main.js"></script>
+  </body>
+</html>
+
