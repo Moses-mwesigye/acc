@@ -1,10 +1,10 @@
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import { useApi } from '@/composables/useApi'
 
-const emit = defineEmits(['login-success'])
-
+const router = useRouter()
 const { setAuth } = useAuth()
 const { login } = useApi()
 
