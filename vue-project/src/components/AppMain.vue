@@ -1,10 +1,12 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import CashbookTab from '@/components/CashbookTab.vue'
 import InventoryBuyTab from '@/components/InventoryBuyTab.vue'
 import InventorySellTab from '@/components/InventorySellTab.vue'
 
+const router = useRouter()
 const { currentUser, canAccessCashbook, canAccessInventory, logout } = useAuth()
 
 const activeTab = ref('cashbook')
@@ -17,7 +19,7 @@ const roleDisplay = computed(() => {
 
 function handleLogout() {
   logout()
-  activeTab.value = 'cashbook'
+  router.push('/login')
 }
 
 function setTab(tab) {
