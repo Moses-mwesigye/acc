@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
-import LoginForm from '@/components/LoginForm.vue'
+import LoginPage from '@/views/LoginPage.vue'
 import AppMain from '@/components/AppMain.vue'
 
 const routes = [
