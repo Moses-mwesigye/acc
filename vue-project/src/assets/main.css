@@ -453,8 +453,9 @@ tfoot td {
 
   /* Tables – scroll wrapper, compact cells */
   .table-wrapper {
-    margin-left: -0.25rem;
-    margin-right: -0.25rem;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    width: calc(100% + 2rem);
     -webkit-overflow-scrolling: touch;
     overflow-x: auto;
     overflow-y: visible;
@@ -559,6 +560,45 @@ tfoot td {
     width: 100%;
     min-height: 44px;
   }
+
+  /* Cashbook-specific: Quick Deposit, Cashbook Entry, Cashbook Table, Internal Transfers */
+  #cashbookTab .card {
+    overflow: visible;
+    min-width: 0;
+  }
+
+  #cashbookTab .form-grid {
+    min-width: 0;
+  }
+
+  #cashbookTab .form-control[style*="grid-column"] {
+    min-width: 0;
+    width: 100%;
+  }
+
+  #cashbookTab .form-control .table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  #cashbookTab .card-actions .btn.small {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  #cashbookTab .collapsible-section .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #cashbookTab .message {
+    word-wrap: break-word;
+  }
+
+  /* Internal Transfers table – 5 cols */
+  #internalTransfersTable {
+    min-width: 450px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -579,8 +619,9 @@ tfoot td {
   }
 
   .table-wrapper {
-    margin-left: -0.5rem;
-    margin-right: -0.5rem;
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+    width: calc(100% + 1.5rem);
     border-radius: 0.5rem;
   }
 
@@ -613,6 +654,14 @@ tfoot td {
   .btn {
     padding: 0.5rem 1rem;
     min-height: 44px;
+  }
+
+  #cashbookTab .card {
+    padding: 0.75rem;
+  }
+
+  #internalTransfersTable {
+    min-width: 400px;
   }
 }
 
