@@ -390,7 +390,7 @@ tfoot td {
   }
 
   .login-status .btn {
-    width: 100%;
+    width: auto;
     min-height: 44px;
   }
 
@@ -434,14 +434,13 @@ tfoot td {
   }
 
   .card-actions {
-    width: 100%;
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 0.5rem;
   }
 
   .card-actions label {
-    width: 100%;
     min-width: 0;
     display: flex;
     flex-direction: column;
@@ -453,7 +452,7 @@ tfoot td {
 
   .card-actions label input,
   .card-actions label select {
-    width: 100%;
+    width: auto;
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
@@ -467,13 +466,10 @@ tfoot td {
   }
 
   .card-actions .btn {
-    width: 100%;
-    max-width: 100%;
+    width: auto;
     min-width: 0;
     min-height: 44px;
-    white-space: normal;
-    word-wrap: break-word;
-    text-align: center;
+    white-space: nowrap;
     padding: 0.6rem 0.75rem;
   }
 
@@ -497,7 +493,7 @@ tfoot td {
     min-height: 44px;
     padding: 0.5rem 0.6rem;
     font-size: 16px; /* prevents iOS zoom on focus */
-    width: 100%;
+    width: auto;
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
@@ -505,18 +501,14 @@ tfoot td {
 
   .form-actions {
     margin-top: 0.75rem;
-    width: 100%;
     min-width: 0;
   }
 
   .form-actions .btn {
-    width: 100%;
-    max-width: 100%;
+    width: auto;
     min-width: 0;
     min-height: 44px;
-    white-space: normal;
-    word-wrap: break-word;
-    text-align: center;
+    white-space: nowrap;
   }
 
   /* Tables – scroll wrapper, keep within viewport to avoid clipping */
@@ -617,7 +609,7 @@ tfoot td {
 
   .transfer-grid select,
   .transfer-grid input {
-    width: 100%;
+    width: auto;
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
@@ -631,8 +623,7 @@ tfoot td {
   }
 
   .transfer-grid .btn {
-    width: 100%;
-    max-width: 100%;
+    width: auto;
     min-width: 0;
     min-height: 44px;
   }
@@ -660,11 +651,9 @@ tfoot td {
 
   #cashbookTab .card-actions .btn.small,
   #cashbookTab .btn.small {
-    width: 100%;
+    width: auto;
     min-height: 44px;
-    white-space: normal;
-    word-wrap: break-word;
-    text-align: center;
+    white-space: nowrap;
     padding: 0.6rem 0.75rem;
   }
 
@@ -780,7 +769,7 @@ tfoot td {
     min-height: 42px;
     padding: 0.4rem 0.5rem;
     font-size: 16px;
-    width: 100%;
+    width: auto;
     max-width: 100%;
   }
 
@@ -792,11 +781,8 @@ tfoot td {
     min-height: 42px;
     padding: 0.4rem 0.75rem;
     font-size: 0.8rem;
-    width: 100%;
-    max-width: 100%;
-    white-space: normal;
-    word-wrap: break-word;
-    text-align: center;
+    width: auto;
+    white-space: nowrap;
   }
 
   .card-actions label input,
@@ -814,6 +800,7 @@ tfoot td {
     min-height: 42px;
     padding: 0.4rem 0.5rem;
     font-size: 0.8rem;
+    width: auto;
   }
 
   .tab {
