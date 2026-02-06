@@ -27,4 +27,24 @@ import LoginForm from '@/components/LoginForm.vue'
   height: auto;
   display: block;
 }
+
+@media (max-width: 768px) {
+  .login-logo {
+    margin-top: 1.5rem;
+    padding: 0.75rem;
+  }
+  .login-logo img {
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-logo {
+    margin-top: 1rem;
+    padding: 0.5rem;
+  }
+  .login-logo img {
+    max-width: 160px;
+  }
+}
 </style>

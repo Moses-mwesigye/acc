@@ -406,7 +406,7 @@ onMounted(() => {
         <!-- Internal Transfer -->
         <div class="form-control" style="grid-column: 1 / -1;">
           <label style="margin-bottom: 0.5rem; font-weight: 600;">Internal Transfer</label>
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 0.5rem; align-items: end;">
+          <div class="transfer-grid">
             <div>
               <label for="cbTransferFrom" style="font-size: 0.8rem;">From</label>
               <select id="cbTransferFrom" v-model="cbTransferFrom" style="width: 100%;">
