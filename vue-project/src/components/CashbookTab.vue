@@ -404,8 +404,8 @@ onMounted(() => {
         </div>
 
         <!-- Internal Transfer -->
-        <div class="form-control" style="grid-column: 1 / -1;">
-          <label style="margin-bottom: 0.5rem; font-weight: 600;">Internal Transfer</label>
+        <div class="form-control form-control-full" style="grid-column: 1 / -1;">
+          <label class="section-label">Internal Transfer</label>
           <div class="transfer-grid">
             <div>
               <label for="cbTransferFrom" style="font-size: 0.8rem;">From</label>
@@ -490,8 +490,8 @@ onMounted(() => {
         </div>
 
         <!-- Wages Toggle -->
-        <div class="form-control" style="grid-column: 1 / -1;">
-          <label style="margin-bottom: 0.3rem; font-weight: 600;">Wages & Allowances</label>
+        <div class="form-control form-control-full" style="grid-column: 1 / -1;">
+          <label class="section-label">Wages & Allowances</label>
           <button type="button" @click="showWagesSection = !showWagesSection" class="btn secondary small">
             {{ showWagesSection ? 'Hide' : 'Show' }} wages & allowances
           </button>
