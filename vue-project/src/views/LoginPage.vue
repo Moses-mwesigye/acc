@@ -4,6 +4,7 @@ import LoginForm from '@/components/LoginForm.vue'
 
 <template>
   <div class="app-root">
+    <marquee class="login-marquee">built by thrustline solutions</marquee>
     <header class="app-header glass">
       <h1>BWWS Cashbook & Inventory</h1>
       <span class="login-status">Not logged in</span>
@@ -18,6 +19,16 @@ import LoginForm from '@/components/LoginForm.vue'
 </template>
 
 <style scoped>
+.login-marquee {
+  display: block;
+  padding: 0.4rem;
+  background: rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.85rem;
+  font-style: italic;
+  margin-bottom: 0.5rem;
+}
+
 .login-logo {
   display: flex;
   justify-content: center;
