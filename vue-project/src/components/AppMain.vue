@@ -49,36 +49,38 @@ onUnmounted(() => {
     </header>
 
     <main id="mainContent">
-      <nav class="tabs glass">
-        <button 
-          v-if="canAccessCashbook" 
-          class="tab" 
-          :class="{ active: activeTab === 'cashbook' }"
-          @click="setTab('cashbook')"
-        >
-          Cashbook
-        </button>
-        <button 
-          v-if="canAccessInventory" 
-          class="tab" 
-          :class="{ active: activeTab === 'inventoryBuy' }"
-          @click="setTab('inventoryBuy')"
-        >
-          Inventory Buying
-        </button>
-        <button 
-          v-if="canAccessInventory" 
-          class="tab" 
-          :class="{ active: activeTab === 'inventorySell' }"
-          @click="setTab('inventorySell')"
-        >
-          Inventory Selling
-        </button>
-      </nav>
+      <div class="content-backdrop">
+        <nav class="tabs glass">
+          <button 
+            v-if="canAccessCashbook" 
+            class="tab" 
+            :class="{ active: activeTab === 'cashbook' }"
+            @click="setTab('cashbook')"
+          >
+            Cashbook
+          </button>
+          <button 
+            v-if="canAccessInventory" 
+            class="tab" 
+            :class="{ active: activeTab === 'inventoryBuy' }"
+            @click="setTab('inventoryBuy')"
+          >
+            Inventory Buying
+          </button>
+          <button 
+            v-if="canAccessInventory" 
+            class="tab" 
+            :class="{ active: activeTab === 'inventorySell' }"
+            @click="setTab('inventorySell')"
+          >
+            Inventory Selling
+          </button>
+        </nav>
 
-      <CashbookTab v-if="canAccessCashbook && activeTab === 'cashbook'" />
-      <InventoryBuyTab v-if="canAccessInventory && activeTab === 'inventoryBuy'" />
-      <InventorySellTab v-if="canAccessInventory && activeTab === 'inventorySell'" />
+        <CashbookTab v-if="canAccessCashbook && activeTab === 'cashbook'" />
+        <InventoryBuyTab v-if="canAccessInventory && activeTab === 'inventoryBuy'" />
+        <InventorySellTab v-if="canAccessInventory && activeTab === 'inventorySell'" />
+      </div>
     </main>
   </div>
 </template>

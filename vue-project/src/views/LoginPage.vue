@@ -8,9 +8,11 @@ import LoginForm from '@/components/LoginForm.vue'
       <h1>BWWS Cashbook & Inventory</h1>
       <span class="login-status">Not logged in</span>
     </header>
-    <LoginForm />
-    <div class="login-logo">
-      <img src="/bww-logo.png" alt="BWWS Logo" />
+    <div class="content-backdrop">
+      <LoginForm />
+      <div class="login-logo">
+        <img src="/bww-logo.png" alt="BWWS Logo" />
+      </div>
     </div>
   </div>
 </template>
