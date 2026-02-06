@@ -25,7 +25,7 @@ async function createAdmin() {
     console.log('MongoDB connected');
 
     const username = process.argv[2] || 'admin';
-    const password = process.argv[3] || 'admin123';
+    const password = process.argv[3] || 'admin26.$$';
     const role = 'ADMIN';
 
     // Check if user already exists
