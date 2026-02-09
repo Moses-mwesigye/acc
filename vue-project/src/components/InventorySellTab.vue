@@ -1,8 +1,10 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useAuth } from '@/composables/useAuth'
 import { useApi } from '@/composables/useApi'
 
-const { getInventorySales, createInventorySale, downloadInventoryPdf } = useApi()
+const { isAdmin, isManager } = useAuth()
+const { getInventorySales, createInventorySale, downloadInventoryPdf, getStockLevels } = useApi()
 
 // Form refs
 const invSellMonth = ref('')
@@ -21,6 +23,8 @@ const invSellFilterMonth = ref('')
 
 // Data
 const sales = ref([])
+const stockLevels = ref([])
+const stockMap = ref({}) // Map of itemType -> stock info
 
 // Computed totals
 const totalKg = computed(() => 
@@ -43,8 +47,35 @@ async function refreshInvSell() {
   try {
     const rows = await getInventorySales(invSellFilterMonth.value)
     sales.value = rows
+    await loadStockLevels()
   } catch (err) {
     console.error(err)
+  }
+}
+
+// Load stock levels
+async function loadStockLevels() {
+  if (!isAdmin.value && !isManager.value) return
+  try {
+    const data = await getStockLevels()
+    stockLevels.value = data.stockLevels || []
+    // Create a map for quick lookup
+    stockMap.value = {}
+    stockLevels.value.forEach(stock => {
+      stockMap.value[stock.itemType] = stock
+    })
+  } catch (err) {
+    console.error('Error loading stock levels:', err)
+  }
+}
+
+// Get remaining stock for an item type
+function getRemainingStock(itemType) {
+  const stock = stockMap.value[itemType]
+  if (!stock) return null
+  return {
+    kg: stock.remainingStockKg || 0,
+    tons: stock.remainingStockTons || 0
   }
 }
 
@@ -70,7 +101,8 @@ async function handleSubmit() {
     await createInventorySale(payload)
     invSellMessage.value = 'Sale saved'
     invSellMessageType.value = 'success'
-    refreshInvSell()
+    await refreshInvSell()
+    await loadStockLevels()
   } catch (err) {
     invSellMessage.value = err.message
     invSellMessageType.value = 'error'
@@ -112,6 +144,7 @@ function formatDate(date) {
 
 onMounted(() => {
   refreshInvSell()
+  loadStockLevels()
 })
 </script>
 
@@ -147,6 +180,9 @@ onMounted(() => {
             <option value="BOX">Box</option>
             <option value="CUPS">Cups</option>
           </select>
+          <small v-if="invSellItemType && getRemainingStock(invSellItemType)" style="color: #cbd5f5; font-size: 0.75rem; margin-top: 0.25rem; display: block;">
+            Current Stock: {{ getRemainingStock(invSellItemType).kg.toLocaleString() }} Kg ({{ getRemainingStock(invSellItemType).tons.toFixed(2) }} Tons)
+          </small>
         </div>
         <div class="form-control">
           <label for="invSellQtyKg">Qty (Kgs)</label>
@@ -202,6 +238,7 @@ onMounted(() => {
               <th>Qty (Tons)</th>
               <th>Amount</th>
               <th>Method</th>
+              <th v-if="isAdmin || isManager">Remaining Stock</th>
             </tr>
           </thead>
           <tbody>
@@ -213,6 +250,13 @@ onMounted(() => {
               <td>{{ ((row.qtyKg || 0) / 1000).toFixed(2) }}</td>
               <td>{{ (row.totalAmount || 0).toLocaleString() }}</td>
               <td>{{ row.methodOfPayment || '' }}</td>
+              <td v-if="isAdmin || isManager">
+                <template v-if="getRemainingStock(row.itemType)">
+                  {{ getRemainingStock(row.itemType).kg.toLocaleString() }} Kg<br>
+                  <small>({{ getRemainingStock(row.itemType).tons.toFixed(2) }} Tons)</small>
+                </template>
+                <span v-else>-</span>
+              </td>
             </tr>
           </tbody>
           <tfoot>
@@ -222,6 +266,7 @@ onMounted(() => {
               <td>{{ totalTons.toFixed(2) }}</td>
               <td>{{ totalAmount.toLocaleString() }}</td>
               <td></td>
+              <td v-if="isAdmin || isManager"></td>
             </tr>
           </tfoot>
         </table>

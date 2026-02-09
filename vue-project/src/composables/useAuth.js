@@ -8,7 +8,7 @@ export function useAuth() {
   const isAdmin = computed(() => currentUser.value?.role === 'ADMIN')
   const isManager = computed(() => currentUser.value?.role === 'MANAGER')
   const isInventory = computed(() => currentUser.value?.role === 'INVENTORY')
-  const canAccessCashbook = computed(() => currentUser.value?.role === 'ADMIN')
+  const canAccessCashbook = computed(() => ['ADMIN', 'MANAGER'].includes(currentUser.value?.role))
   const canAccessInventory = computed(() => 
     ['ADMIN', 'MANAGER', 'INVENTORY'].includes(currentUser.value?.role)
   )

@@ -166,6 +166,94 @@ const inventorySaleSchema = new mongoose.Schema(
 
 const InventorySale = mongoose.model('InventorySale', inventorySaleSchema);
 
+// Stock tracking schema - tracks remaining stock per item type
+const stockSchema = new mongoose.Schema(
+  {
+    itemType: {
+      type: String,
+      enum: ['SOFT', 'BOTTLES', 'HD', 'STEEL', 'SACKS', 'JCNS', 'PLASTICS', 'BOX', 'CUPS'],
+      required: true,
+      unique: true,
+    },
+    totalPurchasedKg: { type: Number, default: 0 }, // Total purchased quantity in Kg
+    totalSoldKg: { type: Number, default: 0 }, // Total sold quantity in Kg
+    remainingStockKg: { type: Number, default: 0 }, // Remaining stock in Kg (calculated)
+    remainingStockTons: { type: Number, default: 0 }, // Remaining stock in Tons (calculated)
+  },
+  { timestamps: true }
+);
+
+const Stock = mongoose.model('Stock', stockSchema);
+
+// Helper function to update stock levels
+async function updateStockLevels(itemType, purchasedKg = 0, soldKg = 0) {
+  try {
+    let stock = await Stock.findOne({ itemType });
+    
+    if (!stock) {
+      // Create new stock entry if it doesn't exist
+      stock = await Stock.create({
+        itemType,
+        totalPurchasedKg: purchasedKg,
+        totalSoldKg: soldKg,
+        remainingStockKg: purchasedKg - soldKg,
+        remainingStockTons: (purchasedKg - soldKg) / 1000,
+      });
+    } else {
+      // Update existing stock
+      stock.totalPurchasedKg += purchasedKg;
+      stock.totalSoldKg += soldKg;
+      stock.remainingStockKg = stock.totalPurchasedKg - stock.totalSoldKg;
+      stock.remainingStockTons = stock.remainingStockKg / 1000;
+      await stock.save();
+    }
+    
+    return stock;
+  } catch (err) {
+    console.error('Error updating stock levels:', err);
+    throw err;
+  }
+}
+
+// Helper function to recalculate all stock levels from purchases and sales
+async function recalculateAllStockLevels() {
+  try {
+    const itemTypes = ['SOFT', 'BOTTLES', 'HD', 'STEEL', 'SACKS', 'JCNS', 'PLASTICS', 'BOX', 'CUPS'];
+    
+    for (const itemType of itemTypes) {
+      // Get total purchased (only approved purchases)
+      const purchasedAgg = await InventoryPurchase.aggregate([
+        { $match: { itemType, approvalStatus: 'APPROVED' } },
+        { $group: { _id: null, total: { $sum: '$qtyKg' } } },
+      ]);
+      const totalPurchased = purchasedAgg[0]?.total || 0;
+      
+      // Get total sold
+      const soldAgg = await InventorySale.aggregate([
+        { $match: { itemType } },
+        { $group: { _id: null, total: { $sum: '$qtyKg' } } },
+      ]);
+      const totalSold = soldAgg[0]?.total || 0;
+      
+      // Update or create stock entry
+      await Stock.findOneAndUpdate(
+        { itemType },
+        {
+          itemType,
+          totalPurchasedKg: totalPurchased,
+          totalSoldKg: totalSold,
+          remainingStockKg: totalPurchased - totalSold,
+          remainingStockTons: (totalPurchased - totalSold) / 1000,
+        },
+        { upsert: true, new: true }
+      );
+    }
+  } catch (err) {
+    console.error('Error recalculating stock levels:', err);
+    throw err;
+  }
+}
+
 // Simple user model for manager/admin/inventory-only
 const userSchema = new mongoose.Schema(
   {
@@ -732,6 +820,11 @@ app.post('/v1/inventory/purchases', requireAuth, async (req, res) => {
           wildExpenditure: false, // Will be computed
         });
       }
+      
+      // Update stock levels when purchase is approved
+      if (body.itemType && body.qtyKg) {
+        await updateStockLevels(body.itemType, body.qtyKg, 0);
+      }
     }
 
     res.status(201).json(purchase);
@@ -773,7 +866,7 @@ app.put('/v1/inventory/purchases/:id/approve', requireAdmin, async (req, res) =>
     purchase.approvedBy = req.user.id;
     await purchase.save();
 
-    // If approving, create cashbook entry if it doesn't exist
+    // If approving, create cashbook entry if it doesn't exist and update stock
     if (status === 'APPROVED' && purchase.methodOfPayment && purchase.purchasePriceTotal > 0) {
       // Check if cashbook entry already exists
       const existingEntry = await CashbookEntry.findOne({
@@ -802,6 +895,11 @@ app.put('/v1/inventory/purchases/:id/approve', requireAdmin, async (req, res) =>
             wildExpenditure: false,
           });
         }
+      }
+      
+      // Update stock levels when purchase is approved
+      if (purchase.itemType && purchase.qtyKg) {
+        await updateStockLevels(purchase.itemType, purchase.qtyKg, 0);
       }
     }
 
@@ -961,6 +1059,11 @@ app.post('/v1/inventory/sales', requireAuth, async (req, res) => {
         });
       }
     }
+    
+    // Update stock levels when sale is created
+    if (body.itemType && qtyKg > 0) {
+      await updateStockLevels(body.itemType, 0, qtyKg);
+    }
 
     res.status(201).json(sale);
   } catch (err) {
@@ -1081,6 +1184,27 @@ app.get('/v1/inventory/sales/monthly-totals', requireAuth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Error fetching monthly sales totals' });
+  }
+});
+
+// Stock levels endpoint - accessible by ADMIN and MANAGER
+app.get('/v1/inventory/stock', requireAuth, async (req, res) => {
+  try {
+    // Only ADMIN and MANAGER can access stock levels
+    if (!['ADMIN', 'MANAGER'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Access denied. Admin or Manager only.' });
+    }
+    
+    // Recalculate stock levels to ensure accuracy
+    await recalculateAllStockLevels();
+    
+    // Get all stock levels
+    const stockLevels = await Stock.find({}).sort({ itemType: 1 });
+    
+    res.json({ stockLevels });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching stock levels' });
   }
 });
 

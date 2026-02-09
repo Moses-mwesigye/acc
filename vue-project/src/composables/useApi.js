@@ -143,6 +143,11 @@ export function useApi() {
     })
   }
 
+  // Stock Levels
+  async function getStockLevels() {
+    return apiFetch('/v1/inventory/stock')
+  }
+
   return {
     apiFetch,
     apiFetchBlob,
@@ -159,5 +164,6 @@ export function useApi() {
     downloadInventoryPdf,
     getInventorySales,
     createInventorySale,
+    getStockLevels,
   }
 }

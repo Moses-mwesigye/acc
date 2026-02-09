@@ -27,7 +27,7 @@ async function createManager() {
 
     // Get credentials from command line or use defaults
     const username = process.argv[2] || 'manager';
-    const password = process.argv[3] || 'manager123';
+    const password = process.argv[3] || 'Pe256.€€';
     const role = 'MANAGER';
 
     // Check if user already exists
