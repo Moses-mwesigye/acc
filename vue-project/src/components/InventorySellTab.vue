@@ -3,7 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { useApi } from '@/composables/useApi'
 
-const { isAdmin, isManager } = useAuth()
+const { isAdmin, isManager, isViewOnly } = useAuth()
 const { getInventorySales, createInventorySale, downloadInventoryPdf, getStockLevels } = useApi()
 
 // Form refs
@@ -55,7 +55,7 @@ async function refreshInvSell() {
 
 // Load stock levels
 async function loadStockLevels() {
-  if (!isAdmin.value && !isManager.value) return
+  if (!isAdmin.value && !isManager.value && !isViewOnly.value) return
   try {
     const data = await getStockLevels()
     stockLevels.value = data.stockLevels || []
@@ -150,8 +150,15 @@ onMounted(() => {
 
 <template>
   <section id="inventorySellTab" class="tab-content">
-    <!-- Inventory Selling Form -->
-    <div class="card glass">
+    <!-- View-only notice for VIEWER role -->
+    <div v-if="isViewOnly" class="card glass" style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3);">
+      <p style="margin: 0; color: #fbbf24; text-align: center;">
+        <strong>View-Only Mode:</strong> You can view data but cannot create, edit, or delete entries.
+      </p>
+    </div>
+
+    <!-- Inventory Selling Form (hidden for VIEWER) -->
+    <div v-if="!isViewOnly" class="card glass">
       <h2>Inventory Selling</h2>
       <form @submit.prevent="handleSubmit" class="form-grid">
         <div class="form-control">
@@ -238,7 +245,7 @@ onMounted(() => {
               <th>Qty (Tons)</th>
               <th>Amount</th>
               <th>Method</th>
-              <th v-if="isAdmin || isManager">Remaining Stock</th>
+              <th v-if="isAdmin || isManager || isViewOnly">Remaining Stock</th>
             </tr>
           </thead>
           <tbody>
@@ -250,7 +257,7 @@ onMounted(() => {
               <td>{{ ((row.qtyKg || 0) / 1000).toFixed(2) }}</td>
               <td>{{ (row.totalAmount || 0).toLocaleString() }}</td>
               <td>{{ row.methodOfPayment || '' }}</td>
-              <td v-if="isAdmin || isManager">
+              <td v-if="isAdmin || isManager || isViewOnly">
                 <template v-if="getRemainingStock(row.itemType)">
                   {{ getRemainingStock(row.itemType).kg.toLocaleString() }} Kg<br>
                   <small>({{ getRemainingStock(row.itemType).tons.toFixed(2) }} Tons)</small>
@@ -266,7 +273,7 @@ onMounted(() => {
               <td>{{ totalTons.toFixed(2) }}</td>
               <td>{{ totalAmount.toLocaleString() }}</td>
               <td></td>
-              <td v-if="isAdmin || isManager"></td>
+              <td v-if="isAdmin || isManager || isViewOnly"></td>
             </tr>
           </tfoot>
         </table>

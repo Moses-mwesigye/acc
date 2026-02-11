@@ -254,27 +254,33 @@ async function recalculateAllStockLevels() {
   }
 }
 
-// Simple user model for manager/admin/inventory-only
+// Simple user model for manager/admin/inventory-only/viewer
 const userSchema = new mongoose.Schema(
   {
     username: { type: String, unique: true, required: true },
     passwordHash: { type: String, required: true },
-    role: { type: String, enum: ['ADMIN', 'MANAGER', 'INVENTORY'], required: true },
+    role: { type: String, enum: ['ADMIN', 'MANAGER', 'INVENTORY', 'VIEWER'], required: true },
   },
   { timestamps: true }
 );
 
 const User = mongoose.model('User', userSchema);
 
-// Auto-seed admin/manager on first deploy (no terminal needed)
+// Auto-seed admin/manager/viewer on first deploy (no terminal needed)
 async function seedInitialUsers() {
   const count = await User.countDocuments();
-  if (count > 0) return;
+  if (count > 0) {
+    // Even if users exist, ensure viewer user exists
+    await ensureViewerUser();
+    return;
+  }
 
   const adminUser = process.env.INITIAL_ADMIN_USERNAME || 'admin';
   const adminPass = process.env.INITIAL_ADMIN_PASSWORD || 'admin123';
   const managerUser = process.env.INITIAL_MANAGER_USERNAME || 'manager';
   const managerPass = process.env.INITIAL_MANAGER_PASSWORD || 'manager123';
+  const viewerUser = process.env.INITIAL_VIEWER_USERNAME || 'viewer';
+  const viewerPass = process.env.INITIAL_VIEWER_PASSWORD || 'viewer123';
 
   try {
     const adminHash = await bcrypt.hash(adminPass, 10);
@@ -284,8 +290,29 @@ async function seedInitialUsers() {
     const managerHash = await bcrypt.hash(managerPass, 10);
     await User.create({ username: managerUser, passwordHash: managerHash, role: 'MANAGER' });
     console.log('Auto-seeded manager:', managerUser);
+
+    const viewerHash = await bcrypt.hash(viewerPass, 10);
+    await User.create({ username: viewerUser, passwordHash: viewerHash, role: 'VIEWER' });
+    console.log('Auto-seeded viewer:', viewerUser);
   } catch (err) {
     console.error('Auto-seed error:', err.message);
+  }
+}
+
+// Ensure viewer user exists (for existing databases)
+async function ensureViewerUser() {
+  const viewerUser = process.env.INITIAL_VIEWER_USERNAME || 'viewer';
+  const viewerPass = process.env.INITIAL_VIEWER_PASSWORD || 'viewer123';
+  
+  try {
+    const existingViewer = await User.findOne({ username: viewerUser });
+    if (!existingViewer) {
+      const viewerHash = await bcrypt.hash(viewerPass, 10);
+      await User.create({ username: viewerUser, passwordHash: viewerHash, role: 'VIEWER' });
+      console.log('Created viewer user:', viewerUser);
+    }
+  } catch (err) {
+    console.error('Error ensuring viewer user:', err.message);
   }
 }
 
@@ -388,8 +415,16 @@ function requireAdmin(req, res, next) {
   next();
 }
 
+// Block write operations for VIEWER role
+function blockViewer(req, res, next) {
+  if (req.user && req.user.role === 'VIEWER') {
+    return res.status(403).json({ message: 'View-only access. Cannot modify data.' });
+  }
+  next();
+}
+
 // CASHBOOK ROUTES
-app.post('/v1/cashbook', requireAuth, async (req, res) => {
+app.post('/v1/cashbook', requireAuth, blockViewer, async (req, res) => {
   try {
     const body = req.body;
     const date = new Date(body.date);
@@ -482,7 +517,7 @@ app.delete('/v1/cashbook/:id', requireAdmin, async (req, res) => {
 });
 
 // Internal transfer endpoint - creates debit and credit entries
-app.post('/v1/cashbook/internal-transfer', requireAuth, async (req, res) => {
+app.post('/v1/cashbook/internal-transfer', requireAuth, blockViewer, async (req, res) => {
   try {
     const { fromIncomeType, toIncomeType, amount, date, month, ref } = req.body;
     
@@ -779,7 +814,7 @@ app.get('/v1/cashbook/summary', requireAuth, async (req, res) => {
 });
 
 // INVENTORY PURCHASE ROUTES
-app.post('/v1/inventory/purchases', requireAuth, async (req, res) => {
+app.post('/v1/inventory/purchases', requireAuth, blockViewer, async (req, res) => {
   try {
     const body = req.body;
     const date = new Date(body.dateOfPurchase);
@@ -1017,7 +1052,7 @@ app.get('/v1/inventory/purchases/monthly-totals', requireAuth, async (req, res) 
 });
 
 // INVENTORY SALE ROUTES
-app.post('/v1/inventory/sales', requireAuth, async (req, res) => {
+app.post('/v1/inventory/sales', requireAuth, blockViewer, async (req, res) => {
   try {
     const body = req.body;
     const date = new Date(body.dateOfSale);
@@ -1187,12 +1222,12 @@ app.get('/v1/inventory/sales/monthly-totals', requireAuth, async (req, res) => {
   }
 });
 
-// Stock levels endpoint - accessible by ADMIN and MANAGER
+// Stock levels endpoint - accessible by ADMIN, MANAGER, and VIEWER
 app.get('/v1/inventory/stock', requireAuth, async (req, res) => {
   try {
-    // Only ADMIN and MANAGER can access stock levels
-    if (!['ADMIN', 'MANAGER'].includes(req.user.role)) {
-      return res.status(403).json({ message: 'Access denied. Admin or Manager only.' });
+    // ADMIN, MANAGER, and VIEWER can access stock levels
+    if (!['ADMIN', 'MANAGER', 'VIEWER'].includes(req.user.role)) {
+      return res.status(403).json({ message: 'Access denied. Admin, Manager or Viewer only.' });
     }
     
     // Recalculate stock levels to ensure accuracy

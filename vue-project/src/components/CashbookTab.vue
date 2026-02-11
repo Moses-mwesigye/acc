@@ -3,7 +3,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { useApi } from '@/composables/useApi'
 
-const { isAdmin } = useAuth()
+const { isAdmin, isViewOnly } = useAuth()
 const { 
   getCashbook, 
   createCashbookEntry, 
@@ -310,8 +310,15 @@ onMounted(() => {
 
 <template>
   <section id="cashbookTab" class="tab-content active">
-    <!-- Quick Deposit -->
-    <div class="card glass">
+    <!-- View-only notice for VIEWER role -->
+    <div v-if="isViewOnly" class="card glass" style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3);">
+      <p style="margin: 0; color: #fbbf24; text-align: center;">
+        <strong>View-Only Mode:</strong> You can view data but cannot create, edit, or delete entries.
+      </p>
+    </div>
+
+    <!-- Quick Deposit (hidden for VIEWER) -->
+    <div v-if="!isViewOnly" class="card glass">
       <h2>Quick Deposit</h2>
       <form @submit.prevent="handleDeposit" class="form-grid">
         <div class="form-control">
@@ -351,8 +358,8 @@ onMounted(() => {
       </form>
     </div>
 
-    <!-- Cashbook Entry -->
-    <div class="card glass">
+    <!-- Cashbook Entry (hidden for VIEWER) -->
+    <div v-if="!isViewOnly" class="card glass">
       <h2>Cashbook Entry</h2>
       <form @submit.prevent="handleCashbookSubmit" class="form-grid">
         <div class="form-control">
